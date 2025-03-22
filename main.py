@@ -12,8 +12,8 @@ ollama_url = "http://127.0.0.1:11434/v1/chat/completions"
 
 # text splitterの定義
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=512,
-    chunk_overlap=100,
+    chunk_size=1024,
+    chunk_overlap=200,
     length_function=len,
     separators=[
         "\n", " ", ".", ",", ";", ":", "(", ")", "[", "]", "{", "}", "<", ">", '"', "'", 
@@ -22,7 +22,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # Embessingsの定義
-embeddings = OllamaEmbeddings(model="all-minilm")
+embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
 # ChromaDBの初期化
 vector_store = Chroma(
@@ -33,7 +33,7 @@ vector_store = Chroma(
 
 # Retrieverの設定
 retriever = vector_store.as_retriever(
-    search_type="mmr", search_kwargs={"k": 3, "fetch_k": 10}
+    search_type="mmr", search_kwargs={"k": 5, "fetch_k": 20}
 )
 
 # 通常のチャット関数
@@ -55,7 +55,10 @@ def default_chat(prompt):
 # RAGチャット処理
 def chat_with_retriever(prompt):
     retriever_response = retriever.invoke(prompt)
-    context = retriever_response[0].page_content if retriever_response else "No relevant document found."
+    if retriever_response:
+        context = "\n\n".join([doc.page_content for doc in retriever_response])
+    else:
+        context = "No relevant document found."
 
     headers = {"Content-Type": "application/json"}
     data = {
@@ -171,5 +174,3 @@ if button3.button('PDFをベクトル化'):
 # Markdownベクトル化実行
 if button4.button('Markdownをベクトル化'):
     md_to_vector()
-    st.success("Markdownベクトル化完了")
-    st.rerun()
