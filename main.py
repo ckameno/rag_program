@@ -22,7 +22,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # Embessingsの定義
-embeddings = OllamaEmbeddings(model="gemma2:9b")
+embeddings = OllamaEmbeddings(model="all-minilm")
 
 # ChromaDBの初期化
 vector_store = Chroma(
